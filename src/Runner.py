@@ -31,7 +31,7 @@ def run(env, agent, episodes):
 
     episodic_return, episodic_epochs = [], []
     ret, epochs = 0, 0
-
+    MAX_EPOCHS = 100000
     r = [] # Vikram
 
     episode = 0
@@ -52,8 +52,7 @@ def run(env, agent, episodes):
         if epochs%3000==0:
             print epochs
 
-
-        if episode_ended:
+        if episode_ended or epochs>=MAX_EPOCHS:
             episodic_return.append( ret )
             episodic_epochs.append( epochs )
             epochs = 0
