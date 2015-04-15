@@ -1,0 +1,63 @@
+\section{Options from Experience} 
+\label{sec:algo}
+
+In \secref{sec:theory}, we remarked that we need to generate $O(|S|)$
+options. Given the scale of this number, we require an algorithm to
+efficiently generate options within a budget of training epochs in order
+for small world options to be practical. Drawing insight from the proof
+of \thmref{thm:small-world}, the objective of small world options is to
+bring the agent into an exponentially smaller neighbourhood of the
+maximal value state. This suggests that cheaply generated options may
+still be acceptable.
+
+The algorithm (\algoref{algo:small-world-experience}) we propose takes
+a given MDP $\mdp$, and trains an agent to learn $T$ different tasks
+(i.e. different $\rewards$) on it, evenly dividing the epoch budget
+amongst them. With each learned task, we certainly will have a good policy
+for path options from any state to the state of maximal value, $M_v$.
+However, we observe that will also have a good policy for path options
+from $u$ to $v$ is the path is `along the gradient' of $Q$, i.e. when
+$V(u) < V(v) < V(M_v)$. Observing that $V(s) \approx \argmax_{v}
+Q(s,\pi(s))$, we detail the algorithm to construct options from the
+$Q$-value function in \algoref{algo:qoptions}. We use this algorithm to
+construct many options from a single task solution.
+
+\begin{algorithm}[H]
+  \caption{Small World Options from Experience}
+  \label{algo:small-world-experience}
+  \begin{algorithmic}[1]
+      \REQUIRE $\mdp$, $\Rewards$, $r$, $n$, epochs, $T$
+      \STATE $O \gets \emptyset$
+      \FOR{ $i= 0 \to T$ }
+        \STATE $\rewards \sim \Rewards$
+        \STATE $Q \gets $ Solve $\mdp$ with $\rewards$ using
+            $\frac{\textrm{epochs}}{T}$ epochs
+        \STATE $O' \gets $ QOptions( $Q$, $r$,
+            $\frac{n}{T}$ )
+        \STATE $O \gets O \cup O'$
+      \ENDFOR
+      \RETURN A random subset of $n$ options from $O$
+  \end{algorithmic}
+\end{algorithm}
+\begin{algorithm}[H]
+  \caption{{\bf QOptions}: Options from a $Q$-Value Function}
+  \label{algo:qoptions}
+  \begin{algorithmic}[1]
+      \REQUIRE $Q$, $r$, $n$
+      \STATE $O \gets \emptyset$
+      \STATE $\pi \gets $ greedy policy from $Q$
+      \FORALL{ $s$ in $\states$ }
+        \STATE Choose an $s'$ according to $P_r$
+        \IF{ $Q(s', \pi(s')) > Q(s, \pi(s))$ }
+          \STATE $O \gets O \cup \tuple{\{s\}, \pi, \{s'\} \cup \{t \mid Q(s',\pi(s')) < Q(t, \pi(t))\} }$
+        \ENDIF
+      \ENDFOR{ $s$ in $\states$ }
+      \RETURN A random subset of $n$ options from $O$
+  \end{algorithmic}
+\end{algorithm}
+
+We note here except for sampling $s'$ from $P_r$, we do not require any
+knowledge of the MDP, nor do we need to construct a local model of the
+same. $s'$ can approximately be sampled using $\frac{E[l]}{\log(|S|)}$
+in place of $P_r$. 
+

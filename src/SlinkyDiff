@@ -1,0 +1,34 @@
+diff --git a/src/Environments/Rooms.py b/src/Environments/Rooms.py
+index b6f2ce3..d155b55 100644
+--- a/src/Environments/Rooms.py
++++ b/src/Environments/Rooms.py
+@@ -229,12 +229,15 @@ class Rooms():
+         start_set = None
+         end_set = []
+ 
++        R = {}
++
+         for i in xrange( K ):
+             goal = Rooms.get_random_goal( road_map )
+             g = state_idx( *goal )
+             # Get reward for moving to s
+             reward = np.random.normal( Rooms.REWARD_SUCCESS - Rooms.REWARD_BIAS, Rooms.REWARD_SUCCESS_VAR )
+-            for s_ in xrange( S ):
++            #for s_ in xrange( S ):
++            for s_ in xrange( env.S ):
+                 R[ (s_,g) ] = reward
+             end_set.append( g )
+ 
+diff --git a/src/rooms-complex.sh b/src/rooms-complex.sh
+index 8234a7f..6a2cd6c 100644
+--- a/src/rooms-complex.sh
++++ b/src/rooms-complex.sh
+@@ -16,7 +16,7 @@ for n in 100 200; do
+     # Run for a bunch of 'r'
+     for r in 0.75 1.0 1.5 2.0 3.0 4.0; do
+         echo "Running $scheme(r=$r) with $n options..."
+-        PYTHONOPTIMIZE=3 python2 ./main.py $ITERS $ENSEMBLES $EPOCHS "MacroQ" "RoomsOptions:../domains/rooms-complex/rooms$cmplx.txt:$scheme:$n:$r" $tmp_prefix
++        PYTHONOPTIMIZE=3 python2 ./main.py $ITERS $ENSEMBLES $EPOCHS "MacroQ" "RoomsOptions:../domains/rooms-complex/rooms$cmplx.txt:1:$scheme:$n:$r" $tmp_prefix
+         mv "$tmp_prefix-return.dat" $DD/$cmplx-$n-$r.return
+     done;
+ done;
