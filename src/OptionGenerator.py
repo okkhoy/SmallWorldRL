@@ -44,6 +44,26 @@ def choose_small_world( path_lengths, s, r ):
 
     s_ = util.choose( zip( neighbours, dists ) )
     return s_
+"""
+def choose_ultra_small_world( path_lengths, s, r ):
+    # Check distances
+    dists = path_lengths[s][1]
+    if s in dists: dists.pop( s )
+    if not dists: return None
+
+    neighbours, dists = zip( *dists.items() )
+    # Create a pr distribution
+    dists = np.power( np.array( dists, dtype=float ), -r )
+    # Zero out neighbours
+    for i in xrange( len( dists ) ):
+        if dists[i] == 1: dists[i] = 0
+
+    if not dists.any(): 
+        return None
+
+    s_ = util.choose( zip( neighbours, dists ) )
+    return s_
+"""
 
 # Optimal Primitives 
 def optimal_point_option( g, gr, dest, max_length ):

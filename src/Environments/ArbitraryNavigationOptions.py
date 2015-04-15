@@ -17,7 +17,7 @@ class ArbitraryNavigationOptions( ):
         """
         @spec - Specification (size, endpoints, barriers); either exactly
                 specified in a file, or with numeric values in a list
-        @option_scheme - none|manual|optimal|small-world|random|ozgur's betweenness|ozgur's randomness|end
+        @option_scheme - none|manual|optimal|small-world|random|ozgur's betweenness|ozgur's randomness|2-small-world|end
         @n_actions - Number of steps that need to taken
         comment : optimal(shortest path to destination)??|random|ozgur's betweenness|ozgur's randomness
         """
@@ -42,6 +42,11 @@ class ArbitraryNavigationOptions( ):
             O = OptionGenerator.optimal_options_from_betweenness( env, count, *args )
         elif scheme == "small-world":
             O = OptionGenerator.optimal_options_from_small_world( env, count, *args )
+        elif scheme == "2-small-world":
+            #Actually adds twice count percent options
+            O = OptionGenerator.optimal_options_from_small_world( env, count, *args )
+            O += OptionGenerator.optimal_options_from_small_world( env, count, *args )
+
         elif scheme == "betweenness+small-world":
             O = OptionEnvironment.optimal_options_from_betweenness( env, count )
             count_ = count - len( O ) 

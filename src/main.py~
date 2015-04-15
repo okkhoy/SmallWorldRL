@@ -44,7 +44,7 @@ def main( iterations, ensembles, episodes, agent_type, agent_args, env_type, env
             print "iter, ens", i, j
             agent = agent_type( env.Q, *agent_args )
             ret__ = Runner.run( env, agent, episodes )
-            ret__ = np.cumsum( ret__ )
+            #ret__ = np.cumsum( ret__ ) #Varun
             # Add to ret_
             ret_ += (ret__ - ret_) / j
 
