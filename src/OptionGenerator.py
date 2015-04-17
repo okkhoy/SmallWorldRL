@@ -171,6 +171,84 @@ def optimal_options_from_small_world( env, count, r ):
     options = util.progressMap( lambda (node, dest): optimal_path_option( g, gr, node, dest ), paths )
     return options
 
+def gammaDistribution(gamma,lowerLimit,degreeRange):
+    probs=[0.0 for i in range(degreeRange)]
+    for i in range(lowerLimit):
+        probs[i]=0.0
+    for i in range(lowerLimit,degreeRange):
+        probs[i]=i**(-gamma)
+    probsSum=sum(probs)
+    probs=[alpha/probsSum for alpha in probs]
+    coinToss=random.random()
+    runningSum=0.0
+    selected=0
+    for i in range(len(probs)):
+        if coinToss>=runningSum and coinToss<runningSum+probs[i]:
+            selected=i
+            break
+        runningSum+=probs[i]
+    return selected
+
+def optimal_options_from_ultra_small_world( env, count, r ):
+    """Create an option that takes a state to a random nodes as per a power-law dist"""
+    g = env.to_graph()
+    gr = g.reverse()
+
+    S = len( g.nodes() )
+    states = range(S)
+
+    """
+    # Get all the edges in the graph
+    max_length = np.power( 16, 1.0/r ) # fn of r
+    path_lengths = nx.all_pairs_shortest_path_length( g, cutoff=max_length ).items()
+
+    random.shuffle(states)
+
+    paths = []
+    for s in states:
+        if len( paths ) > count: 
+            break
+        s_ = choose_small_world( path_lengths, s, r )
+        if not s_: continue
+        paths.append( (s,s_) )
+    """
+    gamma=2.5
+    alpha=1.5
+    degreeRange=15
+    #Generate hidden variables for the expected node degrees
+    expectedDegrees={}
+    for s in states:
+        expectedDegrees[s]=gammaDistribution(gamma,4,degreeRange)
+
+    path_lengths = nx.all_pairs_shortest_path_length(g)
+    probConnection={}
+    for s1 in states:
+        probConnection[s1]={}
+        for s2 in states:
+            if path_lengths[s1][s2]<=1 or s1==s2:
+                probConnection[s1][s2]=0.0
+            else:
+                d=path_lengths[s1][s2]
+                d_c=expectedDegrees[s1]*expectedDegrees[s2]
+                probConnection[s1][s2]=(1+((d+0.0)/(d_c+0.0)))**(-alpha)
+    paths=[]
+    for s1 in states:
+        for s2 in states:
+            if len( paths )>count: 
+                break
+            if path_lengths[s1][s2]<=1 or s1==s2:
+                continue
+            else:
+                coinToss=random.random()
+                if coinToss<probConnection[s1][s2]:
+                    paths.append((s1,s2))
+        if len( paths )>count: 
+            break
+
+    options = util.progressMap( lambda (node, dest): optimal_path_option( g, gr, node, dest ), paths )
+    return options
+
+
 def learn_point_option( env, s, epochs, agent_type, agent_args ):
     """Learn an option to a state"""
     # Reset the rewards of the environment to reward the 

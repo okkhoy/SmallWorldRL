@@ -42,6 +42,8 @@ class ArbitraryNavigationOptions( ):
             O = OptionGenerator.optimal_options_from_betweenness( env, count, *args )
         elif scheme == "small-world":
             O = OptionGenerator.optimal_options_from_small_world( env, count, *args )
+        elif scheme == "ultra-small-world":
+            O = OptionGenerator.optimal_options_from_ultra_small_world( env, count, *args )
         elif scheme == "2-small-world":
             #Actually adds twice count percent options
             O = OptionGenerator.optimal_options_from_small_world( env, count, *args )
