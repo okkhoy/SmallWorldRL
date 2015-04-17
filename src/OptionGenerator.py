@@ -196,7 +196,7 @@ def optimal_options_from_ultra_small_world( env, count, r ):
 
     S = len( g.nodes() )
     states = range(S)
-
+    random.shuffle(states)
     """
     # Get all the edges in the graph
     max_length = np.power( 16, 1.0/r ) # fn of r
