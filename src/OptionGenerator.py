@@ -234,17 +234,18 @@ def optimal_options_from_ultra_small_world( env, count, r ):
     paths=[]
     for s1 in states:
         for s2 in states:
-            if len( paths )>count: 
-                break
+            #if len( paths )>count: 
+            #    break
             if path_lengths[s1][s2]<=1 or s1==s2:
                 continue
             else:
                 coinToss=random.random()
                 if coinToss<probConnection[s1][s2]:
                     paths.append((s1,s2))
-        if len( paths )>count: 
-            break
-
+        #if len( paths )>count: 
+        #    break
+    random.shuffle(paths)
+    paths=paths[:count]
     options = util.progressMap( lambda (node, dest): optimal_path_option( g, gr, node, dest ), paths )
     return options
 

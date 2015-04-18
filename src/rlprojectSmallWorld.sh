@@ -1,1 +1,1 @@
-python main.py 5 5 100 IntraOptionQ ArbitraryNavigationOptions:8:8:small-world:10:2 testfileSmallWorld
+python main.py 10 20 40000 IntraOptionQ ArbitraryNavigationOptions:15:15:small-world:10:1.5 testfileSmallWorld
