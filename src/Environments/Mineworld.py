@@ -45,8 +45,11 @@ class Mineworld():
         return y, x
 
     @staticmethod
-    def get_random_goal( size ):
+    def get_random_goal( grid ):
+        size = grid.shape
         loc = np.random.randint( 0, size[0] ), np.random.randint( 0, size[1] ) 
+        while grid[loc]==Mineworld.MINE:
+            loc = np.random.randint( 0, size[0] ), np.random.randint( 0, size[1] ) 
         return loc
 
     @staticmethod
