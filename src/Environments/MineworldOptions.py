@@ -1,5 +1,5 @@
 """
-ArbitraryNavigationOptions Environment
+MineworldOptions Environment
 """
 
 import numpy as np
@@ -8,12 +8,12 @@ import pdb
 
 from Environment import *
 import OptionGenerator
-from ArbitraryNavigation import ArbitraryNavigation
+from Mineworld import Mineworld
 
-class ArbitraryNavigationOptions( ):
+class MineworldOptions( ):
 
     @staticmethod
-    def create( height, width, scheme = 'none', count = 20, *args ):
+    def create( height, width, mean, cov, scheme = 'none', count = 20, *args ):
         """
         @spec - Specification (size, endpoints, barriers); either exactly
                 specified in a file, or with numeric values in a list
@@ -21,9 +21,7 @@ class ArbitraryNavigationOptions( ):
         @n_actions - Number of steps that need to taken
         comment : optimal(shortest path to destination)??|random|ozgur's betweenness|ozgur's randomness
         """
-        env = ArbitraryNavigation.create(height, width)
-        g = env.to_graph()
-        gr = g.reverse()
+        env = Mineworld.create(height, width, mean, cov)
 
         # Percentage
         if isinstance(count,str):
@@ -58,11 +56,12 @@ class ArbitraryNavigationOptions( ):
         else:
             raise NotImplemented() 
 
-        return OptionEnvironment( ArbitraryNavigationOptions, env.S, env.A, env.P, env.R, env.R_bias, env.start_set, env.end_set, O )
+        return OptionEnvironment( MineworldOptions, env.S, env.A, env.P, env.R, env.R_bias, env.start_set, env.end_set, O )
 
     @staticmethod
-    def reset_rewards( env, height, width, scheme = 'none', count = 20, *args):
+    def reset_rewards( env, height, width, mean, cov, scheme = 'none', count = 20, *args):
         O = env.O
-        env = ArbitraryNavigation.reset_rewards( env, height, width)
-        return OptionEnvironment( ArbitraryNavigationOptions, env.S, env.A, env.P, env.R, env.R_bias, env.start_set, env.end_set, O )
+        env = Mineworld.reset_rewards( env, height, width, mean, cov)
+        return OptionEnvironment( MineworldOptions, env.S, env.A, env.P, env.R, env.R_bias, env.start_set, env.end_set, O )
+
 

@@ -1,7 +1,6 @@
 """
 RL Framework
-Authors: Arun Chaganty, Prateek Gaur
-Arbitrary Navigation Environment
+Mineworld Environment
 """
 
 import numpy as np
@@ -9,12 +8,13 @@ from Environment import *
 import functools 
 import pdb
 
-class ArbitraryNavigation():
+class Mineworld():
     """
-    Arbitrary Navigation Environment
-    Expects size of area to be given
+    Mineworld Environment
+    Expects size of area, mean and covariance to be given
     """
 
+    #TODO Figure out what these vars are
     MOVE_UP     = 0
     MOVE_DOWN   = 1
     MOVE_LEFT   = 2
@@ -50,19 +50,19 @@ class ArbitraryNavigation():
         return loc
 
     @staticmethod
-    def make_mdp( size ):
-        state_idx = functools.partial( ArbitraryNavigation.state_idx, size )
+    def make_mdp( size, mean, cov ):
+        state_idx = functools.partial( Mineworld.state_idx, size )
 
-        goal = ArbitraryNavigation.get_random_goal( size )
+        goal = Mineworld.get_random_goal( size )
 
         S = size[ 0 ] * size[ 1 ]
         A = 4 # up down left right
         P = [ [ [] for i in xrange( S ) ] for j in xrange( A ) ]
         R = {}
-        R_bias = ArbitraryNavigation.REWARD_BIAS
+        R_bias = Mineworld.REWARD_BIAS
 
         # Populate the P table
-        ACCURACY = ArbitraryNavigation.ACCURACY
+        ACCURACY = Mineworld.ACCURACY
         RESIDUE = (1.0 - ACCURACY)/3
         for y in xrange( size[ 0 ] ):
             for x in xrange( size[ 1 ] ):
@@ -85,22 +85,22 @@ class ArbitraryNavigation():
                 else:
                     right_state = y, x
 
-                P[ ArbitraryNavigation.MOVE_UP ][ s ] = [
+                P[ Mineworld.MOVE_UP ][ s ] = [
                         ( state_idx( *up_state ), ACCURACY ),
                         ( state_idx( *down_state ), RESIDUE ),
                         ( state_idx( *left_state ), RESIDUE ),
                         ( state_idx( *right_state ), RESIDUE ), ]
-                P[ ArbitraryNavigation.MOVE_DOWN ][ s ] = [
+                P[ Mineworld.MOVE_DOWN ][ s ] = [
                         ( state_idx( *up_state ), RESIDUE ),
                         ( state_idx( *down_state ), ACCURACY ),
                         ( state_idx( *left_state ), RESIDUE ),
                         ( state_idx( *right_state ), RESIDUE ), ]
-                P[ ArbitraryNavigation.MOVE_LEFT ][ s ] = [
+                P[ Mineworld.MOVE_LEFT ][ s ] = [
                         ( state_idx( *up_state ), RESIDUE ),
                         ( state_idx( *down_state ), RESIDUE ),
                         ( state_idx( *left_state ), ACCURACY ),
                         ( state_idx( *right_state ), RESIDUE ), ]
-                P[ ArbitraryNavigation.MOVE_RIGHT ][ s ] = [
+                P[ Mineworld.MOVE_RIGHT ][ s ] = [
                         ( state_idx( *up_state ), RESIDUE ),
                         ( state_idx( *down_state ), RESIDUE ),
                         ( state_idx( *left_state ), RESIDUE ),
@@ -109,7 +109,7 @@ class ArbitraryNavigation():
         # Add rewards to all states that transit into the goal state
         s = state_idx( *goal )
         for s_ in xrange( S ):
-            R[ (s_,s) ] = ArbitraryNavigation.REWARD_SUCCESS - ArbitraryNavigation.REWARD_BIAS
+            R[ (s_,s) ] = Mineworld.REWARD_SUCCESS - Mineworld.REWARD_BIAS
         
         start_set = None
         end_set = [ s ]
@@ -117,25 +117,26 @@ class ArbitraryNavigation():
         return S, A, P, R, R_bias, start_set, end_set
 
     @staticmethod
-    def create( height, width ):
+    def create( height, width, mean, cov ):
         """Create a place from @spec"""
-        return Environment( ArbitraryNavigation, *ArbitraryNavigation.make_mdp( (height, width) ) )
+        return Environment( Mineworld, *Mineworld.make_mdp( (height, width) , mean, cov) )
 
     @staticmethod
-    def reset_rewards( env, height, width ):
+    def reset_rewards( env, height, width, mean, cov ):
         size = (height, width)
-        state_idx = functools.partial( ArbitraryNavigation.state_idx, size )
-        goal = ArbitraryNavigation.get_random_goal( size )
+        state_idx = functools.partial( Mineworld.state_idx, size )
+        goal = Mineworld.get_random_goal( size )
 
         # Reset the rewards
         R = {}
         # Add rewards to all states that transit into the goal state
         s = state_idx( *goal )
-        for s_ in xrange( S ):
-            R[ (s_,s) ] = ArbitraryNavigation.REWARD_SUCCESS - ArbitraryNavigation.REWARD_BIAS
+        for s_ in xrange( env.S ):
+            R[ (s_,s) ] = Mineworld.REWARD_SUCCESS - Mineworld.REWARD_BIAS
         
         start_set = None
         end_set = [ s ]
 
-        return Environment( ArbitraryNavigation, env.S, env.A, env.P, R, env.R_bias, start_set, end_set )
+        return Environment( Mineworld, env.S, env.A, env.P, R, env.R_bias, start_set, end_set )
+
 
