@@ -6,6 +6,7 @@ Mineworld Environment
 import numpy as np
 from Environment import *
 import functools 
+import re
 
 class Mineworld():
     """
@@ -122,30 +123,51 @@ class Mineworld():
                 if grid[mine]==Mineworld.MINE:
                     s = state_idx(*mine)
                     # Add rewards to all states that transit into the mine state
-                    for s_ in xrange(env.S):
+                    for s_ in xrange(S):
                         R[ (s_,s) ] = Mineworld.REWARD_FAILURE - Mineworld.REWARD_BIAS
                         
         return S, A, P, R, R_bias, start_set, end_set
 
     @staticmethod
+    def convert_to_list(string):
+        retlist = []
+        outer = re.compile('\[(.+)\]')
+        replace = re.compile(',(?=[^\]]*(?:\[|$))')
+
+        tempstring = outer.search(string)
+        if tempstring is not None:
+            tempstring = tempstring.group(1)
+            newlist = replace.sub(r'|', tempstring).split('|')
+            for string in newlist:
+                retlist.append(Mineworld.convert_to_list(string))
+        else:
+            retlist = float(string)
+
+        return retlist
+
+    @staticmethod
     def create( height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
         """Create a place from @spec"""
+        mean = Mineworld.convert_to_list(mean)
+        cov = Mineworld.convert_to_list(cov)
         grid = np.zeros((height, width))
         for i in range(num_mines):
             x, y = width, height
-            while x>=width or x<0 or y>=height or y<0:
+            while x>=width or x<0 or y>=height or y<0 or grid[y,x]==Mineworld.MINE:
                 y,x = map(np.floor, np.random.multivariate_normal(mean,cov))
                 y += np.floor(height/2)
                 x += np.floor(width/2)
             grid[y,x] = Mineworld.MINE
-        return Environment( Mineworld, *Mineworld.make_mdp( grids ) )
+        return Environment( Mineworld, *Mineworld.make_mdp( grid ) )
 
     @staticmethod
     def reset_rewards( env, height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
+        mean = Mineworld.convert_to_list(mean)
+        cov = Mineworld.convert_to_list(cov)
         grid = np.zeros((height, width))
         for i in range(num_mines):
             x, y = width, height
-            while x>=width or x<0 or y>=height or y<0:
+            while x>=width or x<0 or y>=height or y<0 or grid[y,x]==Mineworld.MINE:
                 y,x = map(np.floor, np.random.multivariate_normal(mean,cov))
                 y += np.floor(height/2)
                 x += np.floor(width/2)
