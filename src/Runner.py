@@ -49,7 +49,7 @@ def run(env, agent, episodes):
             ret += reward
             epochs += 1
 
-        if epochs%3000==0:
+        if epochs%30000==0:
             print epochs
 
         if episode_ended or epochs>=MAX_EPOCHS:

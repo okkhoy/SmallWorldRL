@@ -34,20 +34,18 @@ class Rooms():
     @staticmethod
     def state_idx( road_map, f, y, x ):
         """Compute the index of the state"""
-
         size = road_map.shape
         st, offset = x, size[1]
         st, offset = st + offset * y, offset * size[0]
-
         return f.get( st, None )
 
     @staticmethod
     def idx_state( road_map, g, state ):
         """Compute the state for the index"""
         state = g( state )
+        size = road_map.shape
         x, state = state % size[1], state / size[1]
         y, state = state % size[0], state / size[0]
-
         return y, x
 
     @staticmethod
@@ -66,7 +64,6 @@ class Rooms():
 
         if size != road_map.shape:
             raise ValueError()
-
         return road_map
 
     @staticmethod
@@ -88,33 +85,27 @@ class Rooms():
 
         if size != road_map.shape:
             raise ValueError()
-
         return road_map
 
     @staticmethod
     def get_random_goal( road_map ):
         size = road_map.shape
-
-        loc = np.random.randint( 0, size[0] ), np.random.randint( 0, size[1] ) 
+        loc = np.random.randint( 0, size[0] ), np.random.randint( 0, size[1] )
         while road_map[ loc ] == Rooms.WALL:
             loc = np.random.randint( 0, size[0] ), np.random.randint( 0, size[1] ) 
-
         return loc
 
     @staticmethod
     def create_bijection( road_map ):
         size = road_map.shape
         S = size[ 0 ] * size[ 1 ]
-
         f = {}
         g = {}
-
         s_ = 0
         for y in xrange( size[ 0 ] ):
             for x in xrange( size[ 1 ] ):
                 s, offset = x, size[1]
                 s, offset = s + offset * y, offset * size[0]
-
                 if road_map[y, x] == 0:
                     f[s] = s_
                     g[s_] = s
@@ -126,23 +117,20 @@ class Rooms():
         size = road_map.shape
         min_size = len( road_map[ road_map == 0] )
         f, g = Rooms.create_bijection( road_map )
-
         state_idx = functools.partial( Rooms.state_idx, road_map, f )
-
         S = min_size
         A = 4 # up down left right
         P = [ [ [] for i in xrange( S ) ] for j in xrange( A ) ]
         R = {}
         R_bias = Rooms.REWARD_BIAS
-
         # Populate the P table
         ACCURACY = Rooms.ACCURACY
         RESIDUE = (1.0 - ACCURACY)/3
         for y in xrange( size[ 0 ] ):
             for x in xrange( size[ 1 ] ):
                 s = state_idx( y, x )
-                if s is None: continue
-
+                if s is None:
+                    continue
                 if y > 0 and road_map[ y-1, x ] & Rooms.WALL == 0:
                     up_state = y-1, x
                 else:
@@ -159,7 +147,6 @@ class Rooms():
                     right_state = y, x+1
                 else:
                     right_state = y, x
-
                 P[ Rooms.MOVE_UP ][ s ] = [
                         ( state_idx( *up_state ), ACCURACY ),
                         ( state_idx( *down_state ), RESIDUE ),
@@ -184,7 +171,6 @@ class Rooms():
         # Add rewards to all states that transit into the goal state
         start_set = None
         end_set = []
-
         for i in xrange( K ):
             goal = Rooms.get_random_goal( road_map )
             g = state_idx( *goal )
@@ -193,7 +179,6 @@ class Rooms():
             for s_ in xrange( S ):
                 R[ (s_,g) ] = reward
             end_set.append( g )
-
         return S, A, P, R, R_bias, start_set, end_set
 
     @staticmethod
@@ -207,7 +192,6 @@ class Rooms():
                 road_map = Rooms.make_map_from_tsv_file( spec )
             else:
                 road_map = Rooms.make_map_from_txt_file( spec )
-
         return Environment( Rooms, *Rooms.make_mdp( road_map, K ) )
 
     @staticmethod
@@ -228,9 +212,7 @@ class Rooms():
         # Add rewards to all states that transit into the goal state
         start_set = None
         end_set = []
-
         R = {}
-
         for i in xrange( K ):
             goal = Rooms.get_random_goal( road_map )
             g = state_idx( *goal )
@@ -240,6 +222,5 @@ class Rooms():
             for s_ in xrange( env.S ):
                 R[ (s_,g) ] = reward
             end_set.append( g )
-
         return Environment( Rooms, env.S, env.A, env.P, R, env.R_bias, start_set, end_set )
 

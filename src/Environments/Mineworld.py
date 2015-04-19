@@ -6,7 +6,6 @@ Mineworld Environment
 import numpy as np
 from Environment import *
 import functools 
-import pdb
 
 class Mineworld():
     """
@@ -14,7 +13,8 @@ class Mineworld():
     Expects size of area, mean and covariance to be given
     """
 
-    #TODO Figure out what these vars are
+    MINE        = 1 
+
     MOVE_UP     = 0
     MOVE_DOWN   = 1
     MOVE_LEFT   = 2
@@ -37,7 +37,7 @@ class Mineworld():
         return st
 
     @staticmethod
-    def idx_state( size, st ):
+    def idx_state( size, state ):
         """Compute the state for the index"""
         x, state = state % size[1], state / size[1]
         y, state = state % size[0], state / size[0]
@@ -53,10 +53,10 @@ class Mineworld():
         return loc
 
     @staticmethod
-    def make_mdp( size, mean, cov ):
+    def make_mdp( grid ):
+        size = grid.shape
         state_idx = functools.partial( Mineworld.state_idx, size )
-
-        goal = Mineworld.get_random_goal( size )
+        goal = Mineworld.get_random_goal( grid )
 
         S = size[ 0 ] * size[ 1 ]
         A = 4 # up down left right
@@ -64,13 +64,13 @@ class Mineworld():
         R = {}
         R_bias = Mineworld.REWARD_BIAS
 
+
         # Populate the P table
         ACCURACY = Mineworld.ACCURACY
         RESIDUE = (1.0 - ACCURACY)/3
         for y in xrange( size[ 0 ] ):
             for x in xrange( size[ 1 ] ):
                 s = state_idx( y, x )
-
                 if y > 0:
                     up_state = y-1, x
                 else:
@@ -109,37 +109,66 @@ class Mineworld():
                         ( state_idx( *left_state ), RESIDUE ),
                         ( state_idx( *right_state ), ACCURACY ), ]
 
-        # Add rewards to all states that transit into the goal state
         s = state_idx( *goal )
+        start_set = None
+        end_set = [ s ]
+        # Add rewards to all states that transit into the goal state
         for s_ in xrange( S ):
             R[ (s_,s) ] = Mineworld.REWARD_SUCCESS - Mineworld.REWARD_BIAS
         
-        start_set = None
-        end_set = [ s ]
-
+        for y in range(size[0]):
+            for x in range(size[1]):
+                mine = (y,x)
+                if grid[mine]==Mineworld.MINE:
+                    s = state_idx(*mine)
+                    # Add rewards to all states that transit into the mine state
+                    for s_ in xrange(env.S):
+                        R[ (s_,s) ] = Mineworld.REWARD_FAILURE - Mineworld.REWARD_BIAS
+                        
         return S, A, P, R, R_bias, start_set, end_set
 
     @staticmethod
-    def create( height, width, mean, cov ):
+    def create( height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
         """Create a place from @spec"""
-        return Environment( Mineworld, *Mineworld.make_mdp( (height, width) , mean, cov) )
+        grid = np.zeros((height, width))
+        for i in range(num_mines):
+            x, y = width, height
+            while x>=width or x<0 or y>=height or y<0:
+                y,x = map(np.floor, np.random.multivariate_normal(mean,cov))
+                y += np.floor(height/2)
+                x += np.floor(width/2)
+            grid[y,x] = Mineworld.MINE
+        return Environment( Mineworld, *Mineworld.make_mdp( grids ) )
 
     @staticmethod
-    def reset_rewards( env, height, width, mean, cov ):
-        size = (height, width)
-        state_idx = functools.partial( Mineworld.state_idx, size )
-        goal = Mineworld.get_random_goal( size )
+    def reset_rewards( env, height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
+        grid = np.zeros((height, width))
+        for i in range(num_mines):
+            x, y = width, height
+            while x>=width or x<0 or y>=height or y<0:
+                y,x = map(np.floor, np.random.multivariate_normal(mean,cov))
+                y += np.floor(height/2)
+                x += np.floor(width/2)
+            grid[y,x] = Mineworld.MINE
 
+        state_idx = functools.partial( Mineworld.state_idx, (height, width) )
+        goal = Mineworld.get_random_goal( grid )
         # Reset the rewards
         R = {}
-        # Add rewards to all states that transit into the goal state
         s = state_idx( *goal )
-        for s_ in xrange( env.S ):
-            R[ (s_,s) ] = Mineworld.REWARD_SUCCESS - Mineworld.REWARD_BIAS
-        
         start_set = None
         end_set = [ s ]
+        # Add rewards to all states that transit into the goal state
+        for s_ in xrange( env.S ):
+            R[ (s_,s) ] = Mineworld.REWARD_SUCCESS - Mineworld.REWARD_BIAS
+
+        for y in range(height):
+            for x in range(width):
+                mine = (y,x)
+                if grid[mine]==Mineworld.MINE:
+                    s = state_idx(*mine)
+                    # Add rewards to all states that transit into the mine state
+                    for s_ in xrange(env.S):
+                        R[ (s_,s) ] = Mineworld.REWARD_FAILURE - Mineworld.REWARD_BIAS
 
         return Environment( Mineworld, env.S, env.A, env.P, R, env.R_bias, start_set, end_set )
-
-
