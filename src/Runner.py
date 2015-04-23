@@ -50,7 +50,7 @@ def run(env, agent, episodes):
             epochs += 1
 
         if epochs%30000==0:
-            print epochs
+            print epochs, episode
 
         if episode_ended or epochs>=MAX_EPOCHS:
             episodic_return.append( ret )
