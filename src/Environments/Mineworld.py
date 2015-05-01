@@ -146,7 +146,7 @@ class Mineworld():
         return retlist
 
     @staticmethod
-    def create( height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
+    def create( height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=15 ):
         """Create a place from @spec"""
         mean = Mineworld.convert_to_list(mean)
         cov = Mineworld.convert_to_list(cov)
@@ -161,7 +161,7 @@ class Mineworld():
         return Environment( Mineworld, *Mineworld.make_mdp( grid ) )
 
     @staticmethod
-    def reset_rewards( env, height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=1 ):
+    def reset_rewards( env, height, width, mean = (0,0), cov = [[1,0],[0,1]], num_mines=15 ):
         mean = Mineworld.convert_to_list(mean)
         cov = Mineworld.convert_to_list(cov)
         grid = np.zeros((height, width))

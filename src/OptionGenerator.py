@@ -8,6 +8,7 @@ import random
 import itertools
 import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
 
 import util
 import Runner
@@ -222,6 +223,7 @@ def optimal_options_from_ultra_small_world( env, count, r ):
 
     path_lengths = nx.all_pairs_shortest_path_length(g)
     probConnection={}
+    degree = [0 for _ in states]
     for s1 in states:
         probConnection[s1]={}
         for s2 in states:
@@ -232,6 +234,7 @@ def optimal_options_from_ultra_small_world( env, count, r ):
                 d_c=expectedDegrees[s1]*expectedDegrees[s2]
                 probConnection[s1][s2]=(1+((d+0.0)/(d_c+0.0)))**(-alpha)
     paths=[]
+    print degree
     for s1 in states:
         for s2 in states:
             #if len( paths )>count: 
@@ -242,8 +245,25 @@ def optimal_options_from_ultra_small_world( env, count, r ):
                 coinToss=random.random()
                 if coinToss<probConnection[s1][s2]:
                     paths.append((s1,s2))
+                    degree[s1] += 1
+                    degree[s2] += 1
         #if len( paths )>count: 
         #    break
+    print degree
+    degree = [x for x in degree]
+    degrees = range(0,np.max(degree)+1)
+    print np.min(degree), np.max(degree)
+    degreefreq = [0 for _ in range(np.max(degree)+1)]
+    expecteddegfreq = [np.power(k,-gamma) for k in range(np.max(degree)+1)]
+    for i in degree:
+        degreefreq[i] += 1
+    print np.sum(degreefreq)
+    plt.plot(degrees, degreefreq)
+    plt.show()
+    plt.plot(degrees, expecteddegfreq)
+    plt.show()
+    exit()
+    
     random.shuffle(paths)
     paths=paths[:count]
     options = util.progressMap( lambda (node, dest): optimal_path_option( g, gr, node, dest ), paths )
